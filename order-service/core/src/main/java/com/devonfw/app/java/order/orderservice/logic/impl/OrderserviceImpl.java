@@ -16,8 +16,12 @@ import com.devonfw.app.java.order.orderservice.logic.api.usecase.UcFindOrder;
 import com.devonfw.app.java.order.orderservice.logic.api.usecase.UcManageCustomer;
 import com.devonfw.app.java.order.orderservice.logic.api.usecase.UcManageItem;
 import com.devonfw.app.java.order.orderservice.logic.api.usecase.UcManageOrder;
+
+import io.oasp.gastronomy.restaurant.general.common.api.constants.PermissionConstants;
+
 import org.springframework.data.domain.Page;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.time.LocalDate;
@@ -59,6 +63,7 @@ public class OrderserviceImpl extends AbstractComponentFacade implements Orderse
   }
 
   @Override
+  //@RolesAllowed("ROLE_Waiter")
   public OrderEto saveOrder(OrderEto order) {
 
     return this.ucManageOrder.saveOrder(order);
@@ -71,6 +76,7 @@ public class OrderserviceImpl extends AbstractComponentFacade implements Orderse
   }
 
   @Override
+  @RolesAllowed(PermissionConstants.FIND_CUSTOMER)
   public CustomerEto findCustomer(long id) {
 
     return this.ucFindCustomer.findCustomer(id);
@@ -82,6 +88,7 @@ public class OrderserviceImpl extends AbstractComponentFacade implements Orderse
   }
 
   @Override
+  @RolesAllowed("ROLE_Chief")
   public CustomerEto saveCustomer(CustomerEto customer) {
 
     return this.ucManageCustomer.saveCustomer(customer);

@@ -21,6 +21,7 @@ public class ApplicationAccessControlConfig extends AccessControlConfig {
   /**
    * The constant PERMISSION_FIND_BINARY_OBJECT.
    */
+
   public static final String PERMISSION_FIND_BINARY_OBJECT = PREFIX + "FindBinaryObject";
 
   /**
@@ -51,6 +52,7 @@ public class ApplicationAccessControlConfig extends AccessControlConfig {
     super();
     AccessControlGroup readMasterData = group(GROUP_READ_MASTER_DATA, PERMISSION_FIND_BINARY_OBJECT);
     group(GROUP_ADMIN, readMasterData, PERMISSION_SAVE_BINARY_OBJECT, PERMISSION_DELETE_BINARY_OBJECT);
+    group("waiter", readMasterData, PERMISSION_SAVE_BINARY_OBJECT, PERMISSION_DELETE_BINARY_OBJECT, "findCustomer");
   }
 
 }

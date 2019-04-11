@@ -25,11 +25,11 @@ public class WebSecurityBeansConfig {
    *
    * @return the newly created {@code AccessControlProvider}
    */
-  @Bean
-  public AccessControlProvider accessControlProvider() {
+ // @Bean
+//  public AccessControlProvider accessControlProvider() {
 
-    return new AccessControlProviderImpl();
-  }
+ //   return new AccessControlProviderImpl();
+ // }
 
   /**
    * This method provides a new instance of {@code AccessControlSchemaProvider}

@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <access-control-schema>
-  <group id="ReadMasterData" type="group">
-    <permissions>
-      
-    </permissions>
-  </group>
+	<group id="ReadMasterData" type="group">
+		<permissions>
+			<permission id="findCustomer" />
+			<permission id="findItem" />
+			<permission id="findOrder" />
+		</permissions>
+	</group>
 
-  
+	<group id="waiter" type="role">
+		<inherits>
+			<group-ref>ReadMasterData</group-ref>
+		</inherits>
+	</group>
+
 </access-control-schema>

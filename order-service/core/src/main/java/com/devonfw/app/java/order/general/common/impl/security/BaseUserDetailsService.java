@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,93 +32,96 @@ import com.devonfw.module.security.common.base.accesscontrol.AccessControlGrante
 @Named
 public class BaseUserDetailsService implements UserDetailsService {
 
-  /** Logger instance. */
-  private static final Logger LOG = LoggerFactory.getLogger(BaseUserDetailsService.class);
+	/** Logger instance. */
+	private static final Logger LOG = LoggerFactory.getLogger(BaseUserDetailsService.class);
 
-  private AuthenticationManagerBuilder amBuilder;
+	private AuthenticationManagerBuilder amBuilder;
 
-  private AccessControlProvider accessControlProvider;
+	private AccessControlProvider accessControlProvider;
 
-  @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-    Set<GrantedAuthority> authorities = getAuthorities(username);
-    UserDetails user;
-    try {
-      user = getAmBuilder().getDefaultUserDetailsService().loadUserByUsername(username);
-      User userData = new User(user.getUsername(), user.getPassword(), authorities);
-      return userData;
-    } catch (Exception e) {
-      e.printStackTrace();
-      UsernameNotFoundException exception = new UsernameNotFoundException("Authentication failed.", e);
-      LOG.warn("Failed to get user {}.", username, exception);
-      throw exception;
-    }
-  }
+		Set<GrantedAuthority> authorities = getAuthorities(username);
+		UserDetails user;
+		try {
+			user = getAmBuilder().getDefaultUserDetailsService().loadUserByUsername(username);
+			User userData = new User(user.getUsername(), user.getPassword(), authorities);
+			return userData;
+		} catch (Exception e) {
+			e.printStackTrace();
+			UsernameNotFoundException exception = new UsernameNotFoundException("Authentication failed.", e);
+			LOG.warn("Failed to get user {}.", username, exception);
+			throw exception;
+		}
+	}
 
-  /**
-   * @param username the login of the user
-   * @return the associated {@link GrantedAuthority}s
-   * @throws AuthenticationException if no principal is retrievable for the given {@code username}
-   */
-  protected Set<GrantedAuthority> getAuthorities(String username) throws AuthenticationException {
+	/**
+	 * @param username the login of the user
+	 * @return the associated {@link GrantedAuthority}s
+	 * @throws AuthenticationException if no principal is retrievable for the given
+	 *                                 {@code username}
+	 */
+	protected Set<GrantedAuthority> getAuthorities(String username) throws AuthenticationException {
 
-    Objects.requireNonNull(username, "username");
-    // determine granted authorities for spring-security...
-    Set<GrantedAuthority> authorities = new HashSet<>();
-    Collection<String> accessControlIds = getRoles(username);
-    Set<AccessControl> accessControlSet = new HashSet<>();
-    for (String id : accessControlIds) {
-      boolean success = this.accessControlProvider.collectAccessControls(id, accessControlSet);
-      if (!success) {
-        LOG.warn("Undefined access control {}.", id);
-      }
-    }
-    for (AccessControl accessControl : accessControlSet) {
-      authorities.add(new AccessControlGrantedAuthority(accessControl));
-    }
-    return authorities;
-  }
+		Objects.requireNonNull(username, "username");
+		// determine granted authorities for spring-security...
+		Set<GrantedAuthority> authorities = new HashSet<>();
+		Collection<String> accessControlIds = getRoles(username);
+		Set<AccessControl> accessControlSet = new HashSet<>();
+		for (String id : accessControlIds) {
+			boolean success = this.accessControlProvider.collectAccessControls(id, accessControlSet);
+			if (!success) {
+				LOG.warn("Undefined access control {}.", id);
+			}
+		}
+		for (AccessControl accessControl : accessControlSet) {
+			authorities.add(new AccessControlGrantedAuthority(accessControl));
+		}
+		return authorities;
+	}
 
-  private Collection<String> getRoles(String username) {
+	private Collection<String> getRoles(String username) {
 
-    Collection<String> roles = new ArrayList<>();
-    // TODO for a reasonable application you need to retrieve the roles of the user from a central IAM system
-    roles.add(username);
-    return roles;
-  }
+		UserDetails user = getAmBuilder().getDefaultUserDetailsService().loadUserByUsername(username);
+		Collection<String> roles = new ArrayList<>();
 
-  /**
-   * @return amBuilder
-   */
-  public AuthenticationManagerBuilder getAmBuilder() {
+		roles.addAll(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
-    return this.amBuilder;
-  }
+		return roles;
+	}
 
-  /**
-   * @param amBuilder new value of {@link #getAmBuilder}.
-   */
-  @Inject
-  public void setAmBuilder(AuthenticationManagerBuilder amBuilder) {
+	/**
+	 * @return amBuilder
+	 */
+	public AuthenticationManagerBuilder getAmBuilder() {
 
-    this.amBuilder = amBuilder;
-  }
+		return this.amBuilder;
+	}
 
-  /**
-   * @return accessControlProvider
-   */
-  public AccessControlProvider getAccessControlProvider() {
+	/**
+	 * @param amBuilder new value of {@link #getAmBuilder}.
+	 */
+	@Inject
+	public void setAmBuilder(AuthenticationManagerBuilder amBuilder) {
 
-    return this.accessControlProvider;
-  }
+		this.amBuilder = amBuilder;
+	}
 
-  /**
-   * @param accessControlProvider new value of {@link #getAccessControlProvider}.
-   */
-  @Inject
-  public void setAccessControlProvider(AccessControlProvider accessControlProvider) {
+	/**
+	 * @return accessControlProvider
+	 */
+	public AccessControlProvider getAccessControlProvider() {
 
-    this.accessControlProvider = accessControlProvider;
-  }
+		return this.accessControlProvider;
+	}
+
+	/**
+	 * @param accessControlProvider new value of {@link #getAccessControlProvider}.
+	 */
+	@Inject
+	public void setAccessControlProvider(AccessControlProvider accessControlProvider) {
+
+		this.accessControlProvider = accessControlProvider;
+	}
 }
